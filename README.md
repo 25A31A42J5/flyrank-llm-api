@@ -70,3 +70,20 @@ $body = @{
 
 Invoke-RestMethod -Uri "http://127.0.0.1:8000/classify" -Method Post -ContentType "application/json" -Body $body
 ```
+## Stage 2 — Prompt and Real-Model Examples
+
+**Prompt version:** `support-classifier-v1.md`
+**Model:** `llama3.2:latest` via Ollama
+**Temperature:** `0`
+
+The prompt is stored in `prompts/support-classifier-v1.md`. The customer message is sent separately as a user message.
+
+### Real-Model Results
+
+| Input                                                      | Expected Category | Actual Category | Priority | Needs Human | Result        |
+| ---------------------------------------------------------- | ----------------- | --------------- | -------- | ----------- | ------------- |
+| I was charged twice for my subscription.                   | billing           | billing         | high     | false       | Match         |
+| The app crashes every time I open it.                      | technical         | technical       | medium   | false       | Match         |
+| Something is wrong with my service, but I don't know what. | other             | technical       | medium   | true        | Partial match |
+
+**Observation:** All three requests returned valid structured responses. The ambiguous message correctly triggered human review, but its category did not match the expected `other` category. This indicates that the uncertainty rule may need stronger prompting or further evaluation.
