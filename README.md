@@ -1,43 +1,74 @@
 # FlyRank LLM API
 
-A FastAPI application that classifies customer support messages using a locally hosted LLM through Ollama.
+A FastAPI application that classifies customer support messages using a locally hosted LLM through Ollama. It returns a structured classification with a category, priority, and indication of whether human review is needed.
 
-## Endpoint
+## Job Card
 
-`POST /classify`
+**Task:** Classify customer support messages.
 
-Accepts a support message and returns a JSON object containing:
+**Input:** A customer message containing between 1 and 5,000 characters.
+
+**Output:**
 
 * `category`: `billing`, `technical`, `account`, or `other`
 * `priority`: `low`, `medium`, or `high`
-* `needs_human`: `true` or `false`
+* `needs_human`: Boolean (`true` or `false`)
+
+**Must never:**
+
+* Return categories or priorities outside the allowed values.
+* Return `needs_human` as a string instead of a Boolean.
+* Return malformed JSON or extra fields in the classification.
+* Treat ambiguous messages as certain when human review is needed.
+
+## Technology
+
+* Python
+* FastAPI
+* Pydantic
+* OpenAI Python SDK
+* Ollama
+* Model: `llama3.2:latest`
+
+The OpenAI SDK communicates with Ollama through its OpenAI-compatible API.
 
 ## Requirements
 
 * Python 3.10+
 * Ollama installed and running
-* An Ollama model, configured through `.env`
+* A model downloaded in Ollama
 
-## Configuration
+## Setup
 
-Create a `.env` file using `.env.example` as a reference:
+Install the dependencies:
+
+```powershell
+pip install fastapi uvicorn openai python-dotenv pytest
+```
+
+Copy the example environment file:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Configure the environment variables in `.env`:
 
 ```dotenv
 LLM_BASE_URL=http://localhost:11434/v1
 LLM_API_KEY=ollama
 LLM_MODEL=llama3.2:latest
 LLM_STUB=0
+LLM_ENABLED=true
+LLM_TIMEOUT_SECONDS=30
+LLM_MAX_ATTEMPTS=4
 ```
 
-Set `LLM_STUB=1` to use a deterministic stub response without calling the model. Set it to `0` for actual model calls.
+Keep `.env` private and do not commit it to Git.
 
 ## Run Locally
 
-Install dependencies:
-
-```powershell
-pip install fastapi uvicorn openai python-dotenv
-```
+Make sure Ollama is running and the configured model is available.
 
 Start the API:
 
@@ -45,45 +76,56 @@ Start the API:
 uvicorn main:app --reload
 ```
 
-Open `/docs` on the local server to explore and interact with the API.
+Interactive API documentation is available at:
 
-## Valid Request
+`http://127.0.0.1:8000/docs`
 
-PowerShell example:
+## API Usage
+
+### Endpoint
+
+`POST /classify`
+
+### Example request
 
 ```powershell
 $body = @{
     message = "I was charged twice for my subscription."
 } | ConvertTo-Json
 
-Invoke-RestMethod -Uri "http://127.0.0.1:8000/classify" -Method Post -ContentType "application/json" -Body $body
+Invoke-RestMethod -Uri "http://127.0.0.1:8000/classify" -Method POST -ContentType "application/json" -Body $body
 ```
 
-## Invalid Request
+Equivalent cURL request:
 
-An empty message must be rejected with HTTP 400, identifying the invalid `message` field.
+```bash
+curl -X POST "http://127.0.0.1:8000/classify" -H "Content-Type: application/json" -d "{\"message\":\"I was charged twice for my subscription.\"}"
+```
+
+### Example response
+
+```json
+{
+  "category": "billing",
+  "priority": "high",
+  "needs_human": false
+}
+```
+
+The exact classification can vary depending on the model and message.
+
+## Request Validation
+
+Messages must contain between 1 and 5,000 characters.
+
+An empty message should be rejected with HTTP 400 and identify the invalid `message` field.
+
+Example:
 
 ```powershell
 $body = @{
     message = ""
 } | ConvertTo-Json
 
-Invoke-RestMethod -Uri "http://127.0.0.1:8000/classify" -Method Post -ContentType "application/json" -Body $body
+Inv
 ```
-## Stage 2 — Prompt and Real-Model Examples
-
-**Prompt version:** `support-classifier-v1.md`
-**Model:** `llama3.2:latest` via Ollama
-**Temperature:** `0`
-
-The prompt is stored in `prompts/support-classifier-v1.md`. The customer message is sent separately as a user message.
-
-### Real-Model Results
-
-| Input                                                      | Expected Category | Actual Category | Priority | Needs Human | Result        |
-| ---------------------------------------------------------- | ----------------- | --------------- | -------- | ----------- | ------------- |
-| I was charged twice for my subscription.                   | billing           | billing         | high     | false       | Match         |
-| The app crashes every time I open it.                      | technical         | technical       | medium   | false       | Match         |
-| Something is wrong with my service, but I don't know what. | other             | technical       | medium   | true        | Partial match |
-
-**Observation:** All three requests returned valid structured responses. The ambiguous message correctly triggered human review, but its category did not match the expected `other` category. This indicates that the uncertainty rule may need stronger prompting or further evaluation.
