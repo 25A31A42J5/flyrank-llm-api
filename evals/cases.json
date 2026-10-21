@@ -1,0 +1,66 @@
+[
+  {
+    "message": "I was charged twice for my subscription.",
+    "expected": {
+      "category": "billing",
+      "priority": "high",
+      "needs_human": false
+    }
+  },
+  {
+    "message": "The app crashes every time I open it.",
+    "expected": {
+      "category": "technical",
+      "priority": "medium",
+      "needs_human": false
+    }
+  },
+  {
+    "message": "I cannot log in even after resetting my password.",
+    "expected": {
+      "category": "account",
+      "priority": "high",
+      "needs_human": false
+    }
+  },
+  {
+    "message": "How can I change my account email address?",
+    "expected": {
+      "category": "account",
+      "priority": "low",
+      "needs_human": false
+    }
+  },
+  {
+    "message": "My refund has not arrived after three weeks.",
+    "expected": {
+      "category": "billing",
+      "priority": "medium",
+      "needs_human": false
+    }
+  },
+  {
+    "message": "Your service is completely unavailable for our entire team.",
+    "expected": {
+      "category": "technical",
+      "priority": "high",
+      "needs_human": true
+    }
+  },
+  {
+    "message": "Something is wrong, but I cannot explain what happened.",
+    "expected": {
+      "category": "other",
+      "priority": "medium",
+      "needs_human": true
+    }
+  },
+  {
+    "message": "I have a question about something in my account, but I am not sure what it is.",
+    "expected": {
+      "category": "other",
+      "priority": "low",
+      "needs_human": true
+    }
+  }
+]

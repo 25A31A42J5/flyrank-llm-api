@@ -129,3 +129,26 @@ $body = @{
 
 Inv
 ```
+
+## Evaluation
+
+**Evaluation date:** 2026-10-21
+**Prompt version:** `v1`
+**Model:** `llama3.2:latest` via Ollama
+
+Eight manually labeled support-message cases were evaluated against the running API.
+
+| Metric                    |        Result |
+| ------------------------- | ------------: |
+| Cases fully matched       |   5/8 (62.5%) |
+| Field accuracy            | 21/24 (87.5%) |
+| Fields evaluated per case |             3 |
+
+Three cases had mismatches:
+
+* Case 3: Priority was `medium` instead of `high`.
+* Case 5: Priority was `high` instead of `medium`.
+* Case 8: Category was `account` instead of `other`.
+
+These results are an initial evaluation on a small, manually labeled dataset. They do not establish general classification accuracy. Future work should refine the prompt and evaluate it on a larger, representative dataset.
+
